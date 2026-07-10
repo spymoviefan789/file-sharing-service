@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickPrint — Os meus ficheiros</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <a class="logo" href="dashboard.html" aria-label="QuickPrint">
+      <!-- wolf mark (placeholder for the final logo asset) -->
+      <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true">
+        <path fill="currentColor" d="M9 6l7 9 8-3 8 3 7-9 1 14-6 10 3 4-8 2-5 8-5-8-8-2 3-4-6-10z"/>
+        <path fill="var(--bg)" d="M19 26l4 3 1 4-6-2zM29 26l-4 3-1 4 6-2z"/>
+      </svg>
+    </a>
+  </aside>
+
+  <div class="main">
+
+    <header class="topbar">
+      <label class="search pill pill--outline">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <line x1="15.5" y1="15.5" x2="21" y2="21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <input id="search-input" type="search" placeholder="SEARCH" aria-label="Procurar ficheiros">
+      </label>
+
+      <div class="auth-actions">
+        <a class="pill pill--solid" href="#">LOG IN</a>
+        <a class="pill pill--outline" href="#">SIGN UP</a>
+      </div>
+    </header>
+
+    <button id="add-file" class="pill pill--solid add-file" type="button">ADD FILE +</button>
+    <input id="file-input" type="file" multiple hidden>
+
+    <div class="toolbar">
+      <div class="filters">
+        <div class="select-wrap">
+          <select id="filter-type" class="pill pill--solid" aria-label="Filtrar por tipo">
+            <option value="all">TIPO</option>
+            <option value="pdf">PDF</option>
+            <option value="image">IMAGEM</option>
+            <option value="doc">DOCUMENTO</option>
+          </select>
+        </div>
+        <button id="sort-date" class="pill pill--outline" type="button" aria-pressed="false">DATE ↓</button>
+      </div>
+
+      <div class="view-toggle" role="group" aria-label="Modo de visualização">
+        <button id="view-list" class="view-btn is-active" type="button">LISTA</button><span class="view-sep">/</span><button id="view-grid" class="view-btn" type="button">GRID</button>
+      </div>
+    </div>
+
+    <button id="select-all" class="select-circle select-all" type="button" aria-pressed="false" aria-label="Selecionar todos"></button>
+
+    <ul id="file-collection" class="files files--list"></ul>
+
+    <p id="empty-state" class="empty-state" hidden>
+      Ainda não tens ficheiros. Carrega em <strong>ADD FILE +</strong> para começar.
+    </p>
+
+  </div>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+/* ==========================================================================
+   QuickPrint — design tokens (from Tomás' prototype)
+   ========================================================================== */
+
+:root {
+  --bg: #3d3d3b;            /* main charcoal */
+  --bg-sidebar: #464644;    /* sidebar, one step lighter */
+  --cream: #f4eedc;         /* primary accent */
+  --cream-dim: rgba(244, 238, 220, 0.72);
+  --ink-on-cream: #2e2e2c;  /* dark text on cream pills */
+  --hairline: rgba(244, 238, 220, 0.18);
+
+  --radius-pill: 999px;
+  --sidebar-w: 112px;
+
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: var(--font);
+  display: flex;
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar
+   -------------------------------------------------------------------------- */
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--hairline);
+  padding-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.logo {
+  color: var(--cream);
+  display: inline-flex;
+}
+
+/* --------------------------------------------------------------------------
+   Main column
+   -------------------------------------------------------------------------- */
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 40px 40px;
+}
+
+/* --------------------------------------------------------------------------
+   Pills (shared by buttons, search, select)
+   -------------------------------------------------------------------------- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 9px 22px;
+  border: 2px solid var(--cream);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+
+.pill--solid {
+  background: var(--cream);
+  color: var(--ink-on-cream);
+}
+
+.pill--outline {
+  background: transparent;
+  color: var(--cream);
+}
+
+.pill:hover {
+  opacity: 0.9;
+}
+
+.pill:active {
+  transform: scale(0.97);
+}
+
+.pill:focus-visible,
+.view-btn:focus-visible,
+.select-circle:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Topbar: search + auth
+   -------------------------------------------------------------------------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.search {
+  width: min(300px, 100%);
+  padding: 9px 16px;
+  cursor: text;
+}
+
+.search input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--cream);
+  font: inherit;
+  width: 100%;
+}
+
+.search input::placeholder {
+  color: var(--cream-dim);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   Add file + toolbar
+   -------------------------------------------------------------------------- */
+
+.add-file {
+  margin-bottom: 56px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.filters {
+  display: flex;
+  gap: 14px;
+}
+
+.select-wrap select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+#filter-type,
+#sort-date {
+  font-size: 14px;
+  padding: 6px 18px;
+}
+
+.view-toggle {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+.view-btn {
+  background: none;
+  border: none;
+  color: var(--cream-dim);
+  font: inherit;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.view-btn.is-active {
+  color: var(--cream);
+  font-weight: 700;
+}
+
+.view-sep {
+  color: var(--cream-dim);
+}
+
+/* --------------------------------------------------------------------------
+   Selection circles
+   -------------------------------------------------------------------------- */
+
+.select-circle {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--cream);
+  background: transparent;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.select-circle.is-selected {
+  background: var(--cream);
+}
+
+.select-all {
+  margin-bottom: 14px;
+}
+
+/* --------------------------------------------------------------------------
+   File collection — list mode
+   -------------------------------------------------------------------------- */
+
+.files {
+  list-style: none;
+}
+
+.files--list .file {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 4px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.file-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-meta {
+  margin-left: auto;
+  display: flex;
+  gap: 24px;
+  color: var(--cream-dim);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------------
+   File collection — grid mode
+   -------------------------------------------------------------------------- */
+
+.files--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px;
+}
+
+.files--grid .file {
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.files--grid .file-meta {
+  margin-left: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Empty state
+   -------------------------------------------------------------------------- */
+
+.empty-state {
+  text-align: center;
+  color: var(--cream-dim);
+  margin-top: 72px;
+  font-size: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive + accessibility
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  :root {
+    --sidebar-w: 60px;
+  }
+
+  .main {
+    padding: 20px 16px 32px;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .file-meta {
+    gap: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
