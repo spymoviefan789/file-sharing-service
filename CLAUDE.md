@@ -45,15 +45,44 @@ Out of scope for now: mobile app, payments, notifications, cloud deployment.
 ## Key Design Decisions (agreed so far)
 
 - Layered architecture: Controller → Service → Repository, with DTOs at the API boundary.
-- Access codes are **hashed** (like passwords) — never stored in plaintext.
 - Stored files get random UUID names on disk; the original filename lives only in the DB (path-traversal defense).
 - Expiration enforced both **on access** (check `expiresAt` before serving) and by a **scheduled cleanup job**.
 - Session-based auth for the MVP (same-origin frontend); JWT can be discussed later.
 - No Lombok — explicit code is preferred while learning.
 - Tomás designs the frontend screens himself; he will either code them with guidance or send the designs to be implemented.
-- Requesting a code for a file that already has a valid one returns the existing code (no extra use consumed).
-- Custom share IDs must be validated slugs, unique server-side; preview must be restricted to safe content types (images/PDF rendered by the browser — never serve user HTML inline, that's stored XSS).
-- Build order: 1) User entity/JPA → 2) registration+login → 3) upload+storage → 4) share creation → 5) download by code → 6) cleanup job → 7) frontend.
+- Preview restricted to safe content types (images/PDF rendered by the browser — never serve user HTML inline, that's stored XSS).
+
+### Decisions made autonomously in the AFK build (2026-07-11) — REVIEW THESE
+
+- **Nickname = the unique public identifier.** Merged the old "custom share ID"
+  idea into the nickname: it's chosen at upload, validated as a slug, and unique
+  across the whole system. Receivers type nickname + code.
+- **Rolling code is TOTP-style**, not stored: a per-file secret + a 60s time
+  window run through HMAC-SHA256 (`AccessCodes`). The server derives the current
+  code for the owner's dashboard and validates a receiver's submission (current
+  or previous window). No stored rotating codes, no rotation job. The DB never
+  holds the code, only the secret.
+- **Usage limit is decremented on the receiving side**, atomically in one SQL
+  UPDATE, on download OR preview. `null` limit = unlimited.
+- **Receiving is one endpoint**, `POST /api/receive/{nickname}` with the code in
+  the body (never the URL); `mode=download|preview`. Generic 404 for every
+  failure (no nickname enumeration). CSRF-exempt (public, stateless).
+- **Default 7-day TTL** on uploads (`quickprint.storage.default-ttl`), no
+  per-file TTL chosen in the UI yet.
+- **CSRF re-enabled** via cookie-to-header (XSRF-TOKEN cookie + X-XSRF-TOKEN
+  header, `csrf.js`); `/api/receive/**` exempt.
+- **Rate limiting** on receive: 20 attempts / IP / minute (in-memory, per
+  instance).
+
+## Build order — status (MVP feature-complete, 2026-07-11)
+
+1. User entity/JPA ✅  2. registration+login ✅  3. upload+storage ✅
+4. rolling codes ✅  5. download+preview by code ✅  6. cleanup job ✅
+7. frontend wired to API ✅  8. CSRF + rate limiting ✅
+
+Not done yet: automated tests (validated by hand/curl so far), Flyway
+migrations (still `ddl-auto=update`), per-file TTL choice in the UI, delete-file
+endpoint, cloud deploy.
 
 ## Conventions
 
