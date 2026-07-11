@@ -41,7 +41,7 @@ fetch("/api/auth/me")
     logout.className = "pill pill--solid";
     logout.textContent = "LOG OUT";
     logout.addEventListener("click", async () => {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch("/api/auth/logout", { method: "POST", headers: csrfHeaders() });
       window.location.href = "login.html";
     });
     authActions.append(email, logout);
@@ -302,7 +302,7 @@ for (const btn of limitButtons) {
     body.append("nickname", nickname);
     if (limit !== null) body.append("shareLimit", String(limit));
 
-    const res = await fetch("/api/files", { method: "POST", body });
+    const res = await fetch("/api/files", { method: "POST", headers: csrfHeaders(), body });
     if (res.ok) {
       uploadQueue.shift();
       await fetchFiles();

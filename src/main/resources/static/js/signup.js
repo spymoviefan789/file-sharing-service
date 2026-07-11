@@ -19,7 +19,7 @@ form.addEventListener("submit", async (event) => {
 
   const response = await fetch("/api/auth/register", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
     body: JSON.stringify({ email, password }),
   });
 

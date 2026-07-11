@@ -2,12 +2,16 @@ package com.quickprint.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.quickprint.security.CsrfCookieFilter;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 public class SecurityConfig {
@@ -47,10 +51,15 @@ public class SecurityConfig {
                 // For an API, unauthenticated access should be 401, not a
                 // redirect to a login page.
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-                // ponytail: CSRF still disabled. It guards authenticated
-                // state-changing requests, of which we have none yet. Re-enable
-                // it in the upload/delete slice (which touches the fetch layer).
-                .csrf(csrf -> csrf.disable());
+                // CSRF via the cookie-to-header pattern: the token is written to
+                // a JS-readable XSRF-TOKEN cookie, and our frontend echoes it in
+                // the X-XSRF-TOKEN header on mutating requests. /api/receive is
+                // exempt — it is public and stateless (no session cookie to abuse).
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/api/receive/**"))
+                .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

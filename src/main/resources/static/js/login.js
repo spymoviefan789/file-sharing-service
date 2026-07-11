@@ -21,6 +21,7 @@ form.addEventListener("submit", async (event) => {
 
   const response = await fetch("/api/auth/login", {
     method: "POST",
+    headers: csrfHeaders(),
     body: new URLSearchParams({ email, password }),
   });
 
