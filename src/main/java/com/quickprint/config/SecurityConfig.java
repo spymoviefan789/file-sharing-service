@@ -25,6 +25,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        // The receiving side needs no account: enter nickname + code.
+                        .requestMatchers("/api/receive/**").permitAll()
                         // /error is where Spring forwards to render exceptions;
                         // it must be public or every thrown error becomes a 403.
                         .requestMatchers("/error").permitAll()
