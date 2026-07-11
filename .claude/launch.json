@@ -4,8 +4,8 @@
     {
       "name": "static-preview",
       "runtimeExecutable": "jwebserver",
-      "runtimeArgs": ["-d", "C:\\Users\\tomas\\Desktop\\WarLCK\\src\\main\\resources\\static", "-p", "8000"],
-      "port": 8000
+      "runtimeArgs": ["-d", "C:\\Users\\tomas\\Desktop\\WarLCK\\src\\main\\resources\\static", "-p", "8001"],
+      "port": 8001
     }
   ]
 }

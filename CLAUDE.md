@@ -26,7 +26,11 @@ Flow:
 - User registration + login (only uploaders have accounts)
 - File upload
 - Download via identifier + access code (no account)
-- Automatic expiration (configurable TTL)
+- On upload the owner is prompted for a **nickname** and a **usage limit** (preset buttons ∞ / 1× / 5× / 10×; unlimited = NULL limit in the DB)
+- Files are shown as `filename/nickname`; the nickname is the public handle
+- Each file carries an **always-on rolling access code** with a circular countdown (Google-Authenticator style). The owner never asks for a code — it is displayed and refreshes every period. Codes roll in sync (one global window).
+- Each use = one download **or one in-browser preview** (preview page on the receiving side); the usage limit is decremented server-side on the receiving side, NOT when a code rolls
+- Grid view shows only file icon + nickname + code + timer; list view shows filename/nickname, date, size, code + timer
 - One-time download option (delete after download)
 
 Out of scope for now: mobile app, payments, notifications, cloud deployment.
@@ -47,6 +51,8 @@ Out of scope for now: mobile app, payments, notifications, cloud deployment.
 - Session-based auth for the MVP (same-origin frontend); JWT can be discussed later.
 - No Lombok — explicit code is preferred while learning.
 - Tomás designs the frontend screens himself; he will either code them with guidance or send the designs to be implemented.
+- Requesting a code for a file that already has a valid one returns the existing code (no extra use consumed).
+- Custom share IDs must be validated slugs, unique server-side; preview must be restricted to safe content types (images/PDF rendered by the browser — never serve user HTML inline, that's stored XSS).
 - Build order: 1) User entity/JPA → 2) registration+login → 3) upload+storage → 4) share creation → 5) download by code → 6) cleanup job → 7) frontend.
 
 ## Conventions

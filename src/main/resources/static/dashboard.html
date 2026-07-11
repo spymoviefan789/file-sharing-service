@@ -30,7 +30,7 @@
       </label>
 
       <div class="auth-actions">
-        <a class="pill pill--solid" href="#">LOG IN</a>
+        <a class="pill pill--solid" href="login.html">LOG IN</a>
         <a class="pill pill--outline" href="#">SIGN UP</a>
       </div>
     </header>
@@ -65,6 +65,30 @@
     </p>
 
   </div>
+
+  <dialog id="upload-dialog" class="share-dialog">
+    <p id="upload-file-name" class="share-file"></p>
+
+    <div class="field">
+      <span class="field-label">NICKNAME (nome público do ficheiro)</span>
+      <input id="upload-nickname" type="text" maxlength="20" autocomplete="off" spellcheck="false">
+    </div>
+
+    <p class="share-hint">Quantas vezes pode este ficheiro ser utilizado (download ou pré-visualização)?</p>
+
+    <div class="limit-options">
+      <button class="pill pill--solid limit-btn" type="button" data-limit="inf" aria-label="Ilimitado">∞</button>
+      <button class="pill pill--outline limit-btn" type="button" data-limit="1">1×</button>
+      <button class="pill pill--outline limit-btn" type="button" data-limit="5">5×</button>
+      <button class="pill pill--outline limit-btn" type="button" data-limit="10">10×</button>
+    </div>
+
+    <p id="upload-error" class="form-error" hidden></p>
+
+    <div class="dialog-actions">
+      <button id="upload-cancel" class="pill pill--outline" type="button">CANCELAR</button>
+    </div>
+  </dialog>
 
   <script src="js/dashboard.js"></script>
 </body>
