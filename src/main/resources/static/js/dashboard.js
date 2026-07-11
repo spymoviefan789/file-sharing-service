@@ -1,18 +1,10 @@
-// QuickPrint dashboard — front-end prototype (mock data; "TODO(api)" marks
-// where a real backend call goes later).
-
-// nickname = public handle; shareLimit/sharesLeft = usage allowance
-// (Infinity = unlimited). code rolls globally, Google-Authenticator style.
-// TODO(api): replace with GET /api/files
-const mockFiles = [
-  { name: "Relatorio_Circuitos.pdf", type: "pdf", size: "1.2 MB", date: "2026-07-08", nickname: "relatorio", shareLimit: 3, sharesLeft: 3 },
-  { name: "apontamentos_sinais.docx", type: "doc", size: "340 KB", date: "2026-07-05", nickname: "sinais", shareLimit: Infinity, sharesLeft: Infinity },
-  { name: "horario_2026.png", type: "image", size: "88 KB", date: "2026-06-30", nickname: "horario", shareLimit: 5, sharesLeft: 5 },
-  { name: "guia_laboratorio.pdf", type: "pdf", size: "2.8 MB", date: "2026-06-21", nickname: "guia", shareLimit: 1, sharesLeft: 0 },
-];
+// QuickPrint dashboard — talks to the real API.
+// GET /api/files lists the owner's files (with the current rolling code the
+// server derives); POST /api/files uploads. Codes are server-authoritative:
+// when the countdown hits zero we re-fetch to get the fresh codes.
 
 const state = {
-  files: [...mockFiles],
+  files: [],
   search: "",
   type: "all",
   sortDesc: true,
@@ -31,27 +23,54 @@ const selectAll = document.getElementById("select-all");
 const addFile = document.getElementById("add-file");
 const fileInput = document.getElementById("file-input");
 
-// --- Rolling access code ----------------------------------------------------
-// One global window: every file's code refreshes together, like Google
-// Authenticator. The visible timer is UX only — the backend enforces the real
-// expiry (never trust a client clock).
+// --- Auth guard -------------------------------------------------------------
+// The dashboard is a static file (anyone can load it); only the API is
+// protected. If there is no session, bounce to the login page. On success,
+// swap the LOG IN / SIGN UP buttons for the user's email + LOG OUT.
+const authActions = document.querySelector(".auth-actions");
+
+fetch("/api/auth/me")
+  .then((res) => (res.ok ? res.json() : Promise.reject()))
+  .then((me) => {
+    authActions.innerHTML = "";
+    const email = document.createElement("span");
+    email.className = "pill pill--outline";
+    email.textContent = me.email;
+    const logout = document.createElement("button");
+    logout.type = "button";
+    logout.className = "pill pill--solid";
+    logout.textContent = "LOG OUT";
+    logout.addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "login.html";
+    });
+    authActions.append(email, logout);
+    fetchFiles();
+  })
+  .catch(() => (window.location.href = "login.html"));
+
+// --- Rolling code timing ----------------------------------------------------
 const CODE_PERIOD_MS = 60 * 1000;
 const RING_C = 2 * Math.PI * 15; // circumference of the r=15 timer ring
-let windowEnd = Date.now() + CODE_PERIOD_MS;
+let codeDeadline = Date.now() + CODE_PERIOD_MS;
 
-// Unambiguous alphabet: no 0/O or 1/I/L that people misread when typing a code.
-const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+// --- Display helpers --------------------------------------------------------
 
-function randomCode(length) {
-  // TODO(api): real code is server-generated and stored only as a hash.
-  let out = "";
-  const buf = new Uint32Array(length);
-  crypto.getRandomValues(buf);
-  for (const n of buf) out += CODE_ALPHABET[n % CODE_ALPHABET.length];
-  return out;
+function typeOf(contentType) {
+  if (!contentType) return "doc";
+  if (contentType.startsWith("image/")) return "image";
+  if (contentType === "application/pdf") return "pdf";
+  return "doc";
 }
 
-for (const f of state.files) f.code = randomCode(6);
+function formatSize(bytes) {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function usesLabel(file) {
+  return file.unlimited ? "∞" : `${file.usesLeft}×`;
+}
 
 // URL-safe slug suggested from the filename, for the nickname prefill.
 function suggestNickname(name) {
@@ -80,16 +99,12 @@ function makeRing() {
   return wrap;
 }
 
-function usesLabel(file) {
-  return Number.isFinite(file.shareLimit) ? `${file.sharesLeft}×` : "∞";
-}
-
 function visibleFiles() {
   return state.files
-    .filter((f) => f.name.toLowerCase().includes(state.search) || f.nickname.includes(state.search))
-    .filter((f) => state.type === "all" || f.type === state.type)
+    .filter((f) => f.originalFilename.toLowerCase().includes(state.search) || f.nickname.includes(state.search))
+    .filter((f) => state.type === "all" || typeOf(f.contentType) === state.type)
     .sort((a, b) =>
-      state.sortDesc ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date)
+      state.sortDesc ? b.createdAt.localeCompare(a.createdAt) : a.createdAt.localeCompare(b.createdAt)
     );
 }
 
@@ -97,11 +112,11 @@ function makeSelectCircle(file) {
   const circle = document.createElement("button");
   circle.type = "button";
   circle.className = "select-circle";
-  circle.setAttribute("aria-label", `Selecionar ${file.name}`);
-  if (state.selected.has(file.name)) circle.classList.add("is-selected");
-  circle.setAttribute("aria-pressed", String(state.selected.has(file.name)));
+  circle.setAttribute("aria-label", `Selecionar ${file.originalFilename}`);
+  if (state.selected.has(file.nickname)) circle.classList.add("is-selected");
+  circle.setAttribute("aria-pressed", String(state.selected.has(file.nickname)));
   circle.addEventListener("click", () => {
-    state.selected.has(file.name) ? state.selected.delete(file.name) : state.selected.add(file.name);
+    state.selected.has(file.nickname) ? state.selected.delete(file.nickname) : state.selected.add(file.nickname);
     render();
   });
   return circle;
@@ -130,7 +145,7 @@ function render() {
       const nick = document.createElement("span");
       nick.className = "card-nick";
       nick.textContent = file.nickname;
-      nick.title = file.name;
+      nick.title = file.originalFilename;
 
       const codeRow = document.createElement("span");
       codeRow.className = "card-code-row";
@@ -140,7 +155,7 @@ function render() {
     } else {
       const name = document.createElement("span");
       name.className = "file-name";
-      name.textContent = file.name;
+      name.textContent = file.originalFilename;
       const nick = document.createElement("span");
       nick.className = "file-nick";
       nick.textContent = `/${file.nickname}`;
@@ -148,45 +163,59 @@ function render() {
 
       const meta = document.createElement("span");
       meta.className = "file-meta";
-      meta.innerHTML = `<span class="row-date">${file.date}</span><span class="row-size">${file.size}</span>`;
+      const date = document.createElement("span");
+      date.className = "row-date";
+      date.textContent = file.createdAt.slice(0, 10);
+      const size = document.createElement("span");
+      size.className = "row-size";
+      size.textContent = formatSize(file.sizeBytes);
 
       const uses = document.createElement("span");
       uses.className = "row-uses";
       uses.textContent = usesLabel(file);
-      uses.title = Number.isFinite(file.shareLimit) ? `${file.sharesLeft} utilizações restantes` : "Utilizações ilimitadas";
+      uses.title = file.unlimited ? "Utilizações ilimitadas" : `${file.usesLeft} utilizações restantes`;
 
-      meta.append(uses, code, ring);
+      meta.append(date, size, uses, code, ring);
       item.append(makeSelectCircle(file), name, meta);
     }
 
-    item._file = file;
-    item._codeEl = code;
     item._ringEl = ring.querySelector(".ring-progress");
     collection.appendChild(item);
   }
 
   emptyState.hidden = files.length > 0;
-  const allSelected = files.length > 0 && files.every((f) => state.selected.has(f.name));
+  const allSelected = files.length > 0 && files.every((f) => state.selected.has(f.nickname));
   selectAll.classList.toggle("is-selected", allSelected);
   selectAll.setAttribute("aria-pressed", String(allSelected));
   updateTimers();
 }
 
-// Drives every code + ring from the shared window; rolls all codes at zero.
+// Drives every ring from the shared deadline. When it runs out the codes have
+// rolled server-side, so we re-fetch to get the new ones.
 function updateTimers() {
-  const now = Date.now();
-  if (now >= windowEnd) {
-    for (const f of state.files) f.code = randomCode(6);
-    windowEnd = now + CODE_PERIOD_MS;
+  if (!state.files.length) return;
+  const remaining = Math.max(0, codeDeadline - Date.now());
+  if (remaining === 0) {
+    fetchFiles();
+    return;
   }
-  const offset = (RING_C * (1 - Math.max(0, windowEnd - now) / CODE_PERIOD_MS)).toFixed(2);
+  const offset = (RING_C * (1 - remaining / CODE_PERIOD_MS)).toFixed(2);
   for (const li of collection.children) {
-    if (!li._file) continue;
-    li._codeEl.textContent = li._file.code;
-    li._ringEl.style.strokeDashoffset = offset;
+    if (li._ringEl) li._ringEl.style.strokeDashoffset = offset;
   }
 }
 setInterval(updateTimers, 250);
+
+async function fetchFiles() {
+  const res = await fetch("/api/files");
+  if (!res.ok) {
+    if (res.status === 401) window.location.href = "login.html";
+    return;
+  }
+  state.files = await res.json();
+  codeDeadline = Date.now() + (state.files.length ? state.files[0].codeExpiresInSeconds * 1000 : CODE_PERIOD_MS);
+  render();
+}
 
 searchInput.addEventListener("input", () => {
   state.search = searchInput.value.trim().toLowerCase();
@@ -221,8 +250,8 @@ viewGrid.addEventListener("click", () => {
 
 selectAll.addEventListener("click", () => {
   const files = visibleFiles();
-  const allSelected = files.length > 0 && files.every((f) => state.selected.has(f.name));
-  files.forEach((f) => (allSelected ? state.selected.delete(f.name) : state.selected.add(f.name)));
+  const allSelected = files.length > 0 && files.every((f) => state.selected.has(f.nickname));
+  files.forEach((f) => (allSelected ? state.selected.delete(f.nickname) : state.selected.add(f.nickname)));
   render();
 });
 
@@ -257,42 +286,44 @@ function promptNextUpload() {
   if (!uploadDialog.open) uploadDialog.showModal();
 }
 
-// A limit button both picks the allowance and confirms the upload.
-// TODO(api): becomes POST /api/files — multipart upload with nickname + limit.
+// A limit button picks the allowance and uploads. On success the file moves on;
+// on a validation/conflict error the dialog stays so the user can fix it.
 for (const btn of limitButtons) {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const nickname = uploadNickname.value.trim().toLowerCase();
     if (!/^[a-z0-9-]{1,20}$/.test(nickname)) {
-      uploadError.textContent = "O nickname deve ter 1–20 caracteres: letras, números ou hífens.";
-      uploadError.hidden = false;
+      showUploadError("O nickname deve ter 1–20 caracteres: letras, números ou hífens.");
       return;
     }
-    const limit = btn.dataset.limit === "inf" ? Infinity : parseInt(btn.dataset.limit, 10);
+    const limit = btn.dataset.limit === "inf" ? null : parseInt(btn.dataset.limit, 10);
 
-    const f = uploadQueue.shift();
-    const ext = f.name.split(".").pop().toLowerCase();
-    const type = ext === "pdf" ? "pdf"
-      : ["png", "jpg", "jpeg", "gif", "webp"].includes(ext) ? "image"
-      : "doc";
-    state.files.unshift({
-      name: f.name,
-      type,
-      size: `${Math.max(1, Math.round(f.size / 1024))} KB`,
-      date: new Date().toISOString().slice(0, 10),
-      nickname,
-      shareLimit: limit,
-      sharesLeft: limit,
-      code: randomCode(6),
-    });
-    render();
-    promptNextUpload();
+    const body = new FormData();
+    body.append("file", uploadQueue[0]);
+    body.append("nickname", nickname);
+    if (limit !== null) body.append("shareLimit", String(limit));
+
+    const res = await fetch("/api/files", { method: "POST", body });
+    if (res.ok) {
+      uploadQueue.shift();
+      await fetchFiles();
+      promptNextUpload();
+    } else if (res.status === 409) {
+      showUploadError("Esse nickname já está em uso. Escolhe outro.");
+    } else if (res.status === 401) {
+      window.location.href = "login.html";
+    } else {
+      showUploadError("Não foi possível carregar o ficheiro. Verifica o nickname e tenta de novo.");
+    }
   });
 }
 
-// Cancelar skips the current file (not added).
+function showUploadError(message) {
+  uploadError.textContent = message;
+  uploadError.hidden = false;
+}
+
+// Cancelar skips the current file (not uploaded).
 uploadCancel.addEventListener("click", () => {
   uploadQueue.shift();
   promptNextUpload();
 });
-
-render();

@@ -377,6 +377,40 @@ body {
   font-weight: 700;
 }
 
+/* Receiving page (index.html) */
+.corner-login {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 13px;
+  padding: 7px 16px;
+}
+
+.receive-lead {
+  font-size: 14px;
+  color: var(--cream-dim);
+  text-align: center;
+  margin-bottom: 22px;
+  max-width: 320px;
+}
+
+.code-input {
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.receive-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.receive-actions .pill {
+  flex: 1;
+  justify-content: center;
+}
+
 /* --------------------------------------------------------------------------
    Row details: nickname, date/size, rolling code + timer ring
    -------------------------------------------------------------------------- */

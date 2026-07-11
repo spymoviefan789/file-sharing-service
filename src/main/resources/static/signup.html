@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickPrint — Criar conta</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-page">
+
+  <main class="auth-card">
+    <svg class="auth-logo" viewBox="0 0 48 48" width="56" height="56" aria-hidden="true">
+      <path fill="currentColor" d="M9 6l7 9 8-3 8 3 7-9 1 14-6 10 3 4-8 2-5 8-5-8-8-2 3-4-6-10z"/>
+      <path fill="var(--bg)" d="M19 26l4 3 1 4-6-2zM29 26l-4 3-1 4 6-2z"/>
+    </svg>
+    <h1 class="auth-title">QUICKPRINT</h1>
+
+    <form id="signup-form" novalidate>
+      <label class="field">
+        <span class="field-label">EMAIL</span>
+        <input type="email" name="email" autocomplete="email" required>
+      </label>
+
+      <label class="field">
+        <span class="field-label">PASSWORD (mín. 8 caracteres)</span>
+        <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+      </label>
+
+      <p id="signup-error" class="form-error" hidden></p>
+
+      <button class="pill pill--solid auth-submit" type="submit">CRIAR CONTA</button>
+    </form>
+
+    <p class="auth-alt">Já tens conta? <a class="auth-link" href="login.html">LOG IN</a></p>
+  </main>
+
+  <script src="js/signup.js"></script>
+</body>
+</html>
