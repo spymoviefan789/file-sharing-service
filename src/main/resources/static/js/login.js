@@ -1,10 +1,11 @@
-// QuickPrint login — front-end prototype.
-// TODO(api): replace the fake submit with POST /api/auth/login.
+// QuickPrint login — posts to Spring Security's form-login endpoint.
+// URLSearchParams makes the browser send application/x-www-form-urlencoded,
+// which is what the form-login filter expects (fields: email, password).
 
 const form = document.getElementById("login-form");
 const errorBox = document.getElementById("login-error");
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const email = form.email.value.trim();
@@ -18,7 +19,16 @@ form.addEventListener("submit", (event) => {
 
   errorBox.hidden = true;
 
-  // TODO(api): fetch("/api/auth/login", { method: "POST", ... })
-  // On success the server sets the session cookie and we go to the dashboard.
-  window.location.href = "dashboard.html";
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    body: new URLSearchParams({ email, password }),
+  });
+
+  if (response.ok) {
+    // The session cookie is set; go to the dashboard.
+    window.location.href = "dashboard.html";
+  } else {
+    errorBox.textContent = "Email ou password incorretos.";
+    errorBox.hidden = false;
+  }
 });
