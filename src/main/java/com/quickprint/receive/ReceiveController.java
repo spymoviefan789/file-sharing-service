@@ -1,5 +1,6 @@
 package com.quickprint.receive;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,15 +19,21 @@ import java.nio.charset.StandardCharsets;
 public class ReceiveController {
 
     private final ReceiveService receive;
+    private final ReceiveRateLimiter rateLimiter;
 
-    public ReceiveController(ReceiveService receive) {
+    public ReceiveController(ReceiveService receive, ReceiveRateLimiter rateLimiter) {
         this.receive = receive;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping("/{nickname}")
     public ResponseEntity<byte[]> receive(@PathVariable String nickname,
                                           @RequestParam("code") String code,
-                                          @RequestParam(value = "mode", defaultValue = "download") String mode) {
+                                          @RequestParam(value = "mode", defaultValue = "download") String mode,
+                                          HttpServletRequest request) {
+        if (!rateLimiter.tryAcquire(request.getRemoteAddr())) {
+            throw new TooManyAttemptsException();
+        }
         boolean preview = mode.equalsIgnoreCase("preview");
         ReceiveService.Fetched fetched = receive.fetch(nickname, code, preview);
 
