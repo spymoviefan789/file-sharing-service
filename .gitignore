@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### QuickPrint ###
+# Uploaded files live here at runtime; never commit them.
+storage/
