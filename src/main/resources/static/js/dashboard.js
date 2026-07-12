@@ -115,6 +115,30 @@ function openFile(file) {
   }
 }
 
+// A trash button that deletes the file after a confirmation.
+function makeDeleteButton(file) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "delete-btn";
+  btn.title = "Remover ficheiro";
+  btn.setAttribute("aria-label", `Remover ${file.originalFilename}`);
+  btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+      stroke-linejoin="round" d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13M10 11v6M14 11v6"/></svg>`;
+  btn.addEventListener("click", async (event) => {
+    event.stopPropagation(); // don't also trigger a preview
+    if (!confirm(`Remover "${file.nickname}"? O ficheiro é apagado para sempre.`)) return;
+    const res = await fetch(`/api/files/${file.id}`, { method: "DELETE", headers: csrfHeaders() });
+    if (res.ok || res.status === 404) {
+      state.selected.delete(file.nickname);
+      await fetchFiles();
+    } else if (res.status === 401) {
+      window.location.href = "login.html";
+    }
+  });
+  return btn;
+}
+
 // Makes a filename/card act as a preview trigger, keyboard included.
 function asOpener(element, file) {
   element.classList.add("openable");
@@ -183,7 +207,7 @@ function render() {
 
       asOpener(icon, file);
       asOpener(nick, file);
-      item.append(makeSelectCircle(file), icon, nick, codeRow);
+      item.append(makeSelectCircle(file), icon, nick, codeRow, makeDeleteButton(file));
     } else {
       const name = document.createElement("span");
       name.className = "file-name";
@@ -208,7 +232,7 @@ function render() {
       uses.textContent = usesLabel(file);
       uses.title = file.unlimited ? "Utilizações ilimitadas" : `${file.usesLeft} utilizações restantes`;
 
-      meta.append(date, size, uses, code, ring);
+      meta.append(date, size, uses, code, ring, makeDeleteButton(file));
       item.append(makeSelectCircle(file), name, meta);
     }
 

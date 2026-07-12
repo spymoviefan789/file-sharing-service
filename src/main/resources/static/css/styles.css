@@ -505,6 +505,38 @@ body {
   border-radius: 4px;
 }
 
+/* remove-file button */
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cream-dim);
+  padding: 5px;
+  display: inline-flex;
+  border-radius: 6px;
+  transition: color 120ms ease, background 120ms ease;
+}
+
+.delete-btn:hover {
+  color: #f0a08c;
+  background: rgba(240, 160, 140, 0.12);
+}
+
+.delete-btn:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
+}
+
+.files--grid .file {
+  position: relative;
+}
+
+.files--grid .delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
 /* fixed-width columns so date/size/uses/code line up across every row */
 .row-date,
 .row-size,

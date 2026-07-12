@@ -67,6 +67,15 @@ public class FileService {
         return files.findByOwnerOrderByCreatedAtDesc(owner);
     }
 
+    @Transactional
+    public void delete(User owner, Long id) {
+        StoredFile file = files.findById(id)
+                .filter(f -> f.getOwner().getId().equals(owner.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        storage.delete(file.getStorageName());
+        files.delete(file);
+    }
+
     // The owner previewing/downloading their OWN file: no code, no use consumed.
     public record Content(String filename, String contentType, byte[] bytes) {
     }
