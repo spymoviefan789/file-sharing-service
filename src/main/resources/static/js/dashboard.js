@@ -115,6 +115,33 @@ function openFile(file) {
   }
 }
 
+// In-site confirmation dialog (no native browser popup). Resolves true if the
+// user confirms, false if they cancel or press Esc.
+const confirmDialog = document.getElementById("confirm-dialog");
+const confirmMessage = document.getElementById("confirm-message");
+const confirmOk = document.getElementById("confirm-ok");
+const confirmCancel = document.getElementById("confirm-cancel");
+
+function confirmRemoval(nickname) {
+  confirmMessage.textContent = `"${nickname}" será apagado para sempre. Esta ação não pode ser desfeita.`;
+  confirmDialog.showModal();
+
+  return new Promise((resolve) => {
+    const finish = (result) => {
+      confirmOk.removeEventListener("click", onOk);
+      confirmCancel.removeEventListener("click", onCancel);
+      confirmDialog.removeEventListener("cancel", onCancel);
+      if (confirmDialog.open) confirmDialog.close();
+      resolve(result);
+    };
+    const onOk = () => finish(true);
+    const onCancel = () => finish(false);
+    confirmOk.addEventListener("click", onOk);
+    confirmCancel.addEventListener("click", onCancel);
+    confirmDialog.addEventListener("cancel", onCancel); // Esc key
+  });
+}
+
 // A trash button that deletes the file after a confirmation.
 function makeDeleteButton(file) {
   const btn = document.createElement("button");
@@ -127,7 +154,7 @@ function makeDeleteButton(file) {
       stroke-linejoin="round" d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13M10 11v6M14 11v6"/></svg>`;
   btn.addEventListener("click", async (event) => {
     event.stopPropagation(); // don't also trigger a preview
-    if (!confirm(`Remover "${file.nickname}"? O ficheiro é apagado para sempre.`)) return;
+    if (!(await confirmRemoval(file.nickname))) return;
     const res = await fetch(`/api/files/${file.id}`, { method: "DELETE", headers: csrfHeaders() });
     if (res.ok || res.status === 404) {
       state.selected.delete(file.nickname);

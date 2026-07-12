@@ -89,6 +89,12 @@ body {
   color: var(--cream);
 }
 
+.pill--danger {
+  background: #d97a63;
+  color: #241f1d;
+  border-color: #d97a63;
+}
+
 .pill:hover {
   opacity: 0.9;
 }
