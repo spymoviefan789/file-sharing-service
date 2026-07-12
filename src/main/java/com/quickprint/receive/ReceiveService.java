@@ -1,6 +1,7 @@
 package com.quickprint.receive;
 
 import com.quickprint.file.AccessCodes;
+import com.quickprint.file.ContentTypes;
 import com.quickprint.file.FileStorageService;
 import com.quickprint.file.StoredFile;
 import com.quickprint.file.StoredFileRepository;
@@ -34,7 +35,7 @@ public class ReceiveService {
                 .filter(f -> AccessCodes.isValid(f.getSecret(), code))
                 .orElseThrow(DownloadNotAvailableException::new);
 
-        if (preview && !isPreviewable(file.getContentType())) {
+        if (preview && !ContentTypes.isPreviewable(file.getContentType())) {
             throw new PreviewNotSupportedException();
         }
 
@@ -58,11 +59,5 @@ public class ReceiveService {
         }
 
         return new Fetched(file.getOriginalFilename(), file.getContentType(), content);
-    }
-
-    // Only types the browser renders without executing anything.
-    private boolean isPreviewable(String contentType) {
-        return contentType != null
-                && (contentType.startsWith("image/") || contentType.equals("application/pdf"));
     }
 }

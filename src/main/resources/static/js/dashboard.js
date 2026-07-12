@@ -99,6 +99,37 @@ function makeRing() {
   return wrap;
 }
 
+// Owner clicks their own file: preview it inline (images/PDF) in a new tab, or
+// download it (other types). Uses the owner endpoint — no code, no use spent.
+function openFile(file) {
+  const kind = typeOf(file.contentType);
+  if (kind === "image" || kind === "pdf") {
+    window.open(`/api/files/${file.id}/content?mode=preview`, "_blank", "noopener");
+  } else {
+    const link = document.createElement("a");
+    link.href = `/api/files/${file.id}/content?mode=download`;
+    link.download = file.originalFilename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+}
+
+// Makes a filename/card act as a preview trigger, keyboard included.
+function asOpener(element, file) {
+  element.classList.add("openable");
+  element.tabIndex = 0;
+  element.setAttribute("role", "button");
+  element.title = "Clica para ver";
+  element.addEventListener("click", () => openFile(file));
+  element.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openFile(file);
+    }
+  });
+}
+
 function visibleFiles() {
   return state.files
     .filter((f) => f.originalFilename.toLowerCase().includes(state.search) || f.nickname.includes(state.search))
@@ -145,12 +176,13 @@ function render() {
       const nick = document.createElement("span");
       nick.className = "card-nick";
       nick.textContent = file.nickname;
-      nick.title = file.originalFilename;
 
       const codeRow = document.createElement("span");
       codeRow.className = "card-code-row";
       codeRow.append(code, ring);
 
+      asOpener(icon, file);
+      asOpener(nick, file);
       item.append(makeSelectCircle(file), icon, nick, codeRow);
     } else {
       const name = document.createElement("span");
@@ -160,6 +192,7 @@ function render() {
       nick.className = "file-nick";
       nick.textContent = `/${file.nickname}`;
       name.appendChild(nick);
+      asOpener(name, file);
 
       const meta = document.createElement("span");
       meta.className = "file-meta";

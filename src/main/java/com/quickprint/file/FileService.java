@@ -2,10 +2,15 @@ package com.quickprint.file;
 
 import com.quickprint.user.User;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -60,5 +65,27 @@ public class FileService {
     @Transactional(readOnly = true)
     public List<StoredFile> list(User owner) {
         return files.findByOwnerOrderByCreatedAtDesc(owner);
+    }
+
+    // The owner previewing/downloading their OWN file: no code, no use consumed.
+    public record Content(String filename, String contentType, byte[] bytes) {
+    }
+
+    @Transactional(readOnly = true)
+    public Content readOwned(User owner, Long id, boolean preview) {
+        StoredFile file = files.findById(id)
+                // 404 (not 403) when it isn't theirs, so ids can't be probed.
+                .filter(f -> f.getOwner().getId().equals(owner.getId()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (preview && !ContentTypes.isPreviewable(file.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        }
+        try {
+            byte[] bytes = Files.readAllBytes(storage.pathFor(file.getStorageName()));
+            return new Content(file.getOriginalFilename(), file.getContentType(), bytes);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not read stored file", e);
+        }
     }
 }

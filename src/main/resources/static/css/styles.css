@@ -479,6 +479,26 @@ body {
   font-weight: 400;
 }
 
+/* clickable file names/cards open a preview */
+.openable {
+  cursor: pointer;
+}
+
+.openable:hover {
+  text-decoration: underline;
+}
+
+.card-icon.openable:hover {
+  text-decoration: none;
+  opacity: 0.8;
+}
+
+.openable:focus-visible {
+  outline: 2px solid var(--cream);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 /* fixed-width columns so date/size/uses/code line up across every row */
 .row-date,
 .row-size,
