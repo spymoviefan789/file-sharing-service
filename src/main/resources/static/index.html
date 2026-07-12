@@ -6,29 +6,30 @@
   <title>QuickPrint — Receber ficheiro</title>
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="auth-page">
+<body class="receive-page">
 
   <a class="corner-login pill pill--outline" href="login.html">SOU DONO · LOG IN</a>
 
-  <main class="auth-card">
-    <svg class="auth-logo" viewBox="0 0 48 48" width="56" height="56" aria-hidden="true">
+  <main class="receive-hero">
+    <svg class="receive-logo" viewBox="0 0 48 48" width="64" height="64" aria-hidden="true">
       <path fill="currentColor" d="M9 6l7 9 8-3 8 3 7-9 1 14-6 10 3 4-8 2-5 8-5-8-8-2 3-4-6-10z"/>
       <path fill="var(--bg)" d="M19 26l4 3 1 4-6-2zM29 26l-4 3-1 4 6-2z"/>
     </svg>
-    <h1 class="auth-title">QUICKPRINT</h1>
-    <p class="receive-lead">Insere o nome e o código para receber o ficheiro. Não precisas de conta.</p>
+    <h1 class="receive-title">QUICKPRINT</h1>
+    <p class="receive-lead">Recebe um ficheiro em segundos. Insere o nome e o código — sem conta, sem instalar nada.</p>
 
-    <form id="receive-form" novalidate>
-      <label class="field">
-        <span class="field-label">NOME DO FICHEIRO</span>
-        <input id="nickname" type="text" autocomplete="off" spellcheck="false" required>
-      </label>
-
-      <label class="field">
-        <span class="field-label">CÓDIGO</span>
-        <input id="code" type="text" autocomplete="off" spellcheck="false"
-               maxlength="6" class="code-input" required>
-      </label>
+    <form id="receive-form" class="receive-form" novalidate>
+      <div class="receive-fields">
+        <label class="field field-name">
+          <span class="field-label">NOME DO FICHEIRO</span>
+          <input id="nickname" type="text" autocomplete="off" spellcheck="false" placeholder="ex: relatorio" required>
+        </label>
+        <label class="field field-code">
+          <span class="field-label">CÓDIGO</span>
+          <input id="code" type="text" autocomplete="off" spellcheck="false"
+                 maxlength="6" class="code-input" placeholder="A1B2C3" required>
+        </label>
+      </div>
 
       <p id="receive-error" class="form-error" hidden></p>
 
