@@ -137,6 +137,12 @@ body {
   letter-spacing: 0.04em;
 }
 
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .auth-actions {
   display: flex;
   gap: 14px;

@@ -9,6 +9,17 @@ const codeInput = document.getElementById("code");
 const errorBox = document.getElementById("receive-error");
 const previewBtn = document.getElementById("preview-btn");
 
+// If already logged in, the corner link should lead back to the dashboard
+// rather than to a login the user has already done.
+fetch("/api/auth/me")
+  .then((res) => {
+    if (!res.ok) return;
+    const corner = document.getElementById("corner-link");
+    corner.textContent = "O MEU PAINEL";
+    corner.href = "dashboard.html";
+  })
+  .catch(() => {});
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   receive("download");
