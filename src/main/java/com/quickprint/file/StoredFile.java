@@ -24,8 +24,9 @@ public class StoredFile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "owner_id", nullable = false)
+    // Null owner = guest upload (anonymous, one-time, fixed code).
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
     private User owner;
 
     @Column(name = "original_filename", nullable = false)
@@ -56,6 +57,11 @@ public class StoredFile {
     @Column(nullable = false)
     private String secret;
 
+    // Fixed access code for guest files; null for account files, whose codes
+    // roll (see AccessCodes). Presence of this value picks the validation path.
+    @Column(name = "fixed_code")
+    private String fixedCode;
+
     @Column(name = "one_time", nullable = false)
     private boolean oneTime;
 
@@ -84,6 +90,18 @@ public class StoredFile {
         this.secret = secret;
         this.expiresAt = expiresAt;
         this.createdAt = Instant.now();
+    }
+
+    // A guest upload: no owner, one-time use, fixed code, short TTL. A rolling
+    // secret is still generated so the column's NOT NULL stays untouched — it
+    // is simply never used when fixedCode is present.
+    public static StoredFile guest(String originalFilename, String nickname, String storageName,
+                                   String contentType, long sizeBytes, String fixedCode,
+                                   Instant expiresAt) {
+        StoredFile file = new StoredFile(null, originalFilename, nickname, storageName,
+                contentType, sizeBytes, 1, true, AccessCodes.newSecret(), expiresAt);
+        file.fixedCode = fixedCode;
+        return file;
     }
 
     public boolean isUnlimited() {
@@ -149,6 +167,10 @@ public class StoredFile {
 
     public String getSecret() {
         return secret;
+    }
+
+    public String getFixedCode() {
+        return fixedCode;
     }
 
     public boolean isOneTime() {

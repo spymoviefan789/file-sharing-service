@@ -18,6 +18,10 @@ public interface StoredFileRepository extends JpaRepository<StoredFile, Long> {
 
     boolean existsByNickname(String nickname);
 
+    // File cap for free accounts. Counts everything the owner has; expired
+    // files are removed hourly by CleanupJob, so the count is close enough.
+    long countByOwner(User owner);
+
     // Used by the cleanup job.
     List<StoredFile> findByExpiresAtBefore(Instant cutoff);
 
