@@ -28,14 +28,14 @@ public class CleanupJob {
     @Scheduled(fixedDelayString = "${quickprint.cleanup.interval:PT1H}")
     @Transactional
     public void removeExpired() {
-        List<StoredFile> expired = files.findByExpiresAtBefore(Instant.now());
-        if (expired.isEmpty()) {
+        List<StoredFile> dead = files.findByExpiresAtBeforeOrUsesLeft(Instant.now(), 0);
+        if (dead.isEmpty()) {
             return;
         }
-        for (StoredFile file : expired) {
+        for (StoredFile file : dead) {
             storage.delete(file.getStorageName());
         }
-        files.deleteAll(expired);
-        log.info("Cleanup removed {} expired file(s)", expired.size());
+        files.deleteAll(dead);
+        log.info("Cleanup removed {} expired/exhausted file(s)", dead.size());
     }
 }

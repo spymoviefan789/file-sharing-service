@@ -391,7 +391,10 @@ body {
   background: var(--cream);
 }
 
-.select-all {
+.select-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 14px;
 }
 

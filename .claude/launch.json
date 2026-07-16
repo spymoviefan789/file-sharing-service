@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "spring",
+      "runtimeExecutable": "C:\\Users\\tomas\\Desktop\\WarLCK\\mvnw.cmd",
+      "runtimeArgs": ["spring-boot:run"],
+      "port": 8080
+    },
+    {
       "name": "static-preview",
       "runtimeExecutable": "jwebserver",
       "runtimeArgs": ["-d", "C:\\Users\\tomas\\Desktop\\WarLCK\\src\\main\\resources\\static", "-p", "8001"],

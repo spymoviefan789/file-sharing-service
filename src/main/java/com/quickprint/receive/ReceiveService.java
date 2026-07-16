@@ -41,8 +41,16 @@ public class ReceiveService {
         }
 
         // Atomic spend. Unlimited files (usesLeft == null) skip the guard.
-        if (!file.isUnlimited() && files.decrementUse(file.getId()) == 0) {
-            throw new DownloadNotAvailableException();
+        boolean lastUse = false;
+        if (!file.isUnlimited()) {
+            if (files.decrementUse(file.getId()) == 0) {
+                throw new DownloadNotAvailableException();
+            }
+            // The atomic UPDATE bypasses the loaded entity, so ask the DB how
+            // many uses are left. Only the transaction that spent the last one
+            // sees 0 here — concurrent receivers serialize on the row lock.
+            Integer remaining = files.usesLeft(file.getId());
+            lastUse = remaining != null && remaining <= 0;
         }
 
         // ponytail: reads the whole file into memory. Fine at the 25 MB upload
@@ -54,7 +62,9 @@ public class ReceiveService {
             throw new UncheckedIOException("Could not read stored file", e);
         }
 
-        if (file.isOneTime()) {
+        // One-time files and files whose limit just ran out don't linger as
+        // dead "0×" rows on the dashboard — they're removed right away.
+        if (file.isOneTime() || lastUse) {
             storage.delete(file.getStorageName());
             files.delete(file);
         }

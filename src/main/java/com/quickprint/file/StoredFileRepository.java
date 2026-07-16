@@ -22,8 +22,14 @@ public interface StoredFileRepository extends JpaRepository<StoredFile, Long> {
     // files are removed hourly by CleanupJob, so the count is close enough.
     long countByOwner(User owner);
 
-    // Used by the cleanup job.
-    List<StoredFile> findByExpiresAtBefore(Instant cutoff);
+    // Used by the cleanup job: expired files, plus stragglers already at 0
+    // uses (files now delete on their last use; this sweeps pre-existing rows).
+    List<StoredFile> findByExpiresAtBeforeOrUsesLeft(Instant cutoff, Integer usesLeft);
+
+    // Fresh value straight from the DB — after decrementUse the entity loaded
+    // in this persistence context is stale.
+    @Query("select f.usesLeft from StoredFile f where f.id = :id")
+    Integer usesLeft(@Param("id") Long id);
 
     // Atomic "spend one use": decrements only if a use is left. Returns the
     // number of rows changed (1 = a use was taken, 0 = already exhausted).

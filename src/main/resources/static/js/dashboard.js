@@ -20,6 +20,7 @@ const sortDate = document.getElementById("sort-date");
 const viewList = document.getElementById("view-list");
 const viewGrid = document.getElementById("view-grid");
 const selectAll = document.getElementById("select-all");
+const deleteSelected = document.getElementById("delete-selected");
 const addFile = document.getElementById("add-file");
 const fileInput = document.getElementById("file-input");
 
@@ -122,8 +123,8 @@ const confirmMessage = document.getElementById("confirm-message");
 const confirmOk = document.getElementById("confirm-ok");
 const confirmCancel = document.getElementById("confirm-cancel");
 
-function confirmRemoval(nickname) {
-  confirmMessage.textContent = `"${nickname}" será apagado para sempre. Esta ação não pode ser desfeita.`;
+function confirmRemoval(message) {
+  confirmMessage.textContent = message;
   confirmDialog.showModal();
 
   return new Promise((resolve) => {
@@ -154,7 +155,7 @@ function makeDeleteButton(file) {
       stroke-linejoin="round" d="M4 7h16M9 7V5h6v2M7 7l1 13h8l1-13M10 11v6M14 11v6"/></svg>`;
   btn.addEventListener("click", async (event) => {
     event.stopPropagation(); // don't also trigger a preview
-    if (!(await confirmRemoval(file.nickname))) return;
+    if (!(await confirmRemoval(`"${file.nickname}" será apagado para sempre. Esta ação não pode ser desfeita.`))) return;
     const res = await fetch(`/api/files/${file.id}`, { method: "DELETE", headers: csrfHeaders() });
     if (res.ok || res.status === 404) {
       state.selected.delete(file.nickname);
@@ -271,6 +272,8 @@ function render() {
   const allSelected = files.length > 0 && files.every((f) => state.selected.has(f.nickname));
   selectAll.classList.toggle("is-selected", allSelected);
   selectAll.setAttribute("aria-pressed", String(allSelected));
+  deleteSelected.hidden = state.selected.size === 0;
+  deleteSelected.textContent = state.selected.size > 1 ? `REMOVER (${state.selected.size})` : "REMOVER";
   updateTimers();
 }
 
@@ -297,6 +300,8 @@ async function fetchFiles() {
     return;
   }
   state.files = await res.json();
+  // Drop selections pointing at files that no longer exist (deleted/expired).
+  state.selected = new Set(state.files.filter((f) => state.selected.has(f.nickname)).map((f) => f.nickname));
   codeDeadline = Date.now() + (state.files.length ? state.files[0].codeExpiresInSeconds * 1000 : CODE_PERIOD_MS);
   render();
 }
@@ -330,6 +335,27 @@ viewGrid.addEventListener("click", () => {
   viewGrid.classList.add("is-active");
   viewList.classList.remove("is-active");
   render();
+});
+
+// Deletes every selected file (even ones hidden by the current filter — they
+// were selected explicitly). Reuses the per-file DELETE endpoint.
+deleteSelected.addEventListener("click", async () => {
+  const chosen = state.files.filter((f) => state.selected.has(f.nickname));
+  if (chosen.length === 0) return;
+  const message = chosen.length === 1
+    ? `"${chosen[0].nickname}" será apagado para sempre. Esta ação não pode ser desfeita.`
+    : `${chosen.length} ficheiros serão apagados para sempre. Esta ação não pode ser desfeita.`;
+  if (!(await confirmRemoval(message))) return;
+
+  const results = await Promise.all(
+    chosen.map((f) => fetch(`/api/files/${f.id}`, { method: "DELETE", headers: csrfHeaders() }))
+  );
+  if (results.some((r) => r.status === 401)) {
+    window.location.href = "login.html";
+    return;
+  }
+  state.selected.clear();
+  await fetchFiles();
 });
 
 selectAll.addEventListener("click", () => {

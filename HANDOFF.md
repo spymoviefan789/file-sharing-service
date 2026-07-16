@@ -59,6 +59,12 @@ editar `src/main/resources/static/**` é preciso **reiniciar** para os apanhar.
 - Job de limpeza agendado (`CleanupJob`) dos ficheiros expirados
 - CSRF reativado (cookie XSRF-TOKEN → header X-XSRF-TOKEN); `/api/receive/**` isento
 - Rate limiting na receção: 20 tentativas / IP / minuto (em memória)
+- Ficheiro apaga-se ao gastar a última utilização (2026-07-16): `ReceiveService`
+  relê `usesLeft` depois do decremento atómico e apaga disco+BD quando chega a 0;
+  o `CleanupJob` também varre ficheiros já a 0× (linhas antigas)
+- Apagar vários selecionados (2026-07-16): botão REMOVER aparece junto ao
+  select-all quando há seleção, confirma no diálogo do site e reusa o
+  `DELETE /api/files/{id}` por ficheiro
 - Modo convidado: `POST /api/guest` (público, rate-limited 5/h/IP) — envio
   anónimo de imagem/PDF, uso único, nome gerado (`sillygoose76`) + código fixo
   de 6 caracteres, TTL 24h (`quickprint.storage.guest-ttl`)
@@ -81,12 +87,13 @@ editar `src/main/resources/static/**` é preciso **reiniciar** para os apanhar.
 - Navegação fechada nos dois sentidos (painel ↔ receção)
 
 ## O que FALTA
+- **Envio "não rastreável" (E2E)**: o Tomás quer que o servidor não consiga
+  saber o que as pessoas enviam → cifrar no browser (WebCrypto). Proposta de
+  design apresentada; aguarda decisão dele (âmbito guest vs. contas, tamanho
+  do código). Nota: códigos gerados/derivados no servidor não servem de chave.
 - Spec de pagamentos (tier Pro: vídeo/zip, quota em GB) — ver
   `docs/superpowers/specs/2026-07-16-guest-mode-design.md`, secção 11
-- Apagar ficheiro de conta quando chega a 0× utilizações (hoje fica no
-  dashboard a "0×"; só os one-time se apagam sozinhos)
 - Escolher validade (TTL) no UI (atualmente fixo 7 dias, `quickprint.storage.default-ttl`)
-- Apagar vários selecionados (os círculos de seleção ainda não fazem nada)
 - Migrações Flyway (ainda `spring.jpa.hibernate.ddl-auto=update`)
 - Mais testes (só 2 unitários; falta integração de auth/upload/receive)
 - Deploy/cloud (fora de scope do MVP)
@@ -122,3 +129,5 @@ editar `src/main/resources/static/**` é preciso **reiniciar** para os apanhar.
   `ALTER TABLE stored_files ALTER COLUMN owner_id DROP NOT NULL;`
   (Numa BD nova esta migração NÃO é precisa — o Hibernate já cria `owner_id`
   como nullable a partir do mapeamento atual.)
+- Conta descartável criada nos testes de 2026-07-16 (sem ficheiros):
+  `testbot@example.com` / `SuperSecret123!` — pode ser usada ou ignorada.
