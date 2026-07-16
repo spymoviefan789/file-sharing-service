@@ -22,23 +22,14 @@ Requisitos para arrancar:
 Nota: `spring-boot:run` copia os ficheiros estáticos no arranque — depois de
 editar `src/main/resources/static/**` é preciso **reiniciar** para os apanhar.
 
-## ⚠️ Começar por aqui — ponto em aberto
+## Resolvido (2026-07-16)
 
-Report do Tomás (por confirmar, pode ser bug ou mal-entendido):
-> "No preview de um ficheiro com acesso único, não decrementa e não aparece
-> botão para descarregar."
-
-Duas hipóteses a distinguir primeiro:
-1. **Preview do lado de quem recebe** (`index.html` → `POST /api/receive/{nickname}`
-   com `mode=preview`): o backend **decrementa** uma utilização (`ReceiveService.fetch`).
-   Se na prática não estiver a decrementar, é **bug real** — investigar.
-2. **Preview do dono** (clicar no ficheiro no dashboard → `GET /api/files/{id}/content`):
-   **não decrementa de propósito** (o dono vê o próprio ficheiro de graça) e
-   **não há botão de download explícito** no dashboard. Provavelmente foi isto
-   que o Tomás viu — comportamento esperado, mas falta um botão de download.
-
-Ação: confirmar o caso e, ou corrigir o decremento (se for na receção), ou
-adicionar um botão de download explícito por ficheiro no dashboard.
+- O "logout ao carregar em RECEBER FICHEIRO" era perceção, não bug: a sessão
+  nunca terminava — a página de receção apenas mostrava Log in/Register. O
+  botão redundante foi removido; a receção agora vive na barra esquerda do
+  dashboard (mesmo `receive.js`, ids partilhados).
+- Frontend redesenhado (estilo bypass.city): tema claro/escuro com toggle
+  (`js/theme.js`, tokens em `styles.css`), fonte Inter, acento laranja→rosa.
 
 ## O que está FEITO (e testado)
 
@@ -61,7 +52,17 @@ adicionar um botão de download explícito por ficheiro no dashboard.
 - Job de limpeza agendado (`CleanupJob`) dos ficheiros expirados
 - CSRF reativado (cookie XSRF-TOKEN → header X-XSRF-TOKEN); `/api/receive/**` isento
 - Rate limiting na receção: 20 tentativas / IP / minuto (em memória)
-- Testes unitários (6, passam): `AccessCodesTest`, `ReceiveRateLimiterTest`
+- Modo convidado: `POST /api/guest` (público, rate-limited 5/h/IP) — envio
+  anónimo de imagem/PDF, uso único, nome gerado (`sillygoose76`) + código fixo
+  de 6 caracteres, TTL 24h (`quickprint.storage.guest-ttl`)
+- Limites da conta grátis: máx. 20 ficheiros ativos (`quickprint.limits.free-max-files`),
+  tipos leves (imagens/PDF/Office) validados por magic bytes (`FileTypePolicy`)
+- Migração manual aplicada: `ALTER TABLE stored_files ALTER COLUMN owner_id DROP NOT NULL`
+  (ddl-auto=update não relaxa NOT NULL)
+- Testes unitários (passam): `AccessCodesTest`, `ReceiveRateLimiterTest`,
+  `FixedCodesTest`, `NicknameGeneratorTest`, `FileTypePolicyTest`,
+  `ReceiveServiceGuestTest`, `FileServiceGuestUploadTest`,
+  `FileServiceAccountLimitsTest`, `GuestUploadRateLimiterTest`
 
 ### Frontend (HTML/CSS/JS em `src/main/resources/static/`)
 - `index.html` — página de receção (landing aberta), nome + código, VER/DESCARREGAR
@@ -73,7 +74,10 @@ adicionar um botão de download explícito por ficheiro no dashboard.
 - Navegação fechada nos dois sentidos (painel ↔ receção)
 
 ## O que FALTA
-- Resolver o ponto em aberto acima
+- Spec de pagamentos (tier Pro: vídeo/zip, quota em GB) — ver
+  `docs/superpowers/specs/2026-07-16-guest-mode-design.md`, secção 11
+- Apagar ficheiro de conta quando chega a 0× utilizações (hoje fica no
+  dashboard a "0×"; só os one-time se apagam sozinhos)
 - Escolher validade (TTL) no UI (atualmente fixo 7 dias, `quickprint.storage.default-ttl`)
 - Apagar vários selecionados (os círculos de seleção ainda não fazem nada)
 - Migrações Flyway (ainda `spring.jpa.hibernate.ddl-auto=update`)
@@ -89,6 +93,7 @@ adicionar um botão de download explícito por ficheiro no dashboard.
   `FileStorageService`, `AccessCodes`, `ContentTypes`, `CleanupJob`, `FileResponse`,
   exceções
 - `receive/` — `ReceiveController`, `ReceiveService`, `ReceiveRateLimiter`, exceções
+- `guest/` — `GuestController`, `NicknameGenerator`, `GuestUploadRateLimiter`
 - `src/main/resources/static/` — frontend (html, css/styles.css, js/*)
 - `src/test/java/...` — `AccessCodesTest`, `ReceiveRateLimiterTest`
 

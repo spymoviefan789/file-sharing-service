@@ -32,6 +32,11 @@ Flow:
 - Each use = one download **or one in-browser preview** (preview page on the receiving side); the usage limit is decremented server-side on the receiving side, NOT when a code rolls
 - Grid view shows only file icon + nickname + code + timer; list view shows filename/nickname, date, size, code + timer
 - One-time download option (delete after download)
+- **Guest mode:** anyone can send ONE image/PDF without an account — the app
+  generates a friendly nickname (`sillygoose76`) + a fixed 6-char code, one-time
+  use, 24h TTL. Accounts are for managing multiple files (rolling codes,
+  dashboard). Tier limits live in `FileTypePolicy` + config
+  (`quickprint.limits.free-max-files=20`). Payments/Pro tier: separate spec.
 
 Out of scope for now: mobile app, payments, notifications, cloud deployment.
 
