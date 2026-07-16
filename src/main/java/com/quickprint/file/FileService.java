@@ -47,6 +47,13 @@ public class FileService {
         if (file == null || file.isEmpty()) {
             throw new InvalidUploadException("File is empty.");
         }
+        FileTypePolicy.Kind kind = FileTypePolicy.detect(headOf(file));
+        if (!FileTypePolicy.allowedForFreeAccount(kind)) {
+            throw new UnsupportedFileTypeException();
+        }
+        if (files.countByOwner(owner) >= freeMaxFiles) {
+            throw new FileLimitReachedException(freeMaxFiles);
+        }
         String nickname = nicknameRaw == null ? "" : nicknameRaw.trim().toLowerCase();
         if (!NICKNAME.matcher(nickname).matches()) {
             throw new InvalidNicknameException();
