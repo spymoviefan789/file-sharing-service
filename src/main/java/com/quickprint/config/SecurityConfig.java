@@ -29,8 +29,8 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        // The receiving side needs no account: enter nickname + code.
-                        .requestMatchers("/api/receive/**").permitAll()
+                        // The receiving side and guest sending need no account.
+                        .requestMatchers("/api/receive/**", "/api/guest").permitAll()
                         // /error is where Spring forwards to render exceptions;
                         // it must be public or every thrown error becomes a 403.
                         .requestMatchers("/error").permitAll()
@@ -58,7 +58,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                        .ignoringRequestMatchers("/api/receive/**"))
+                        .ignoringRequestMatchers("/api/receive/**", "/api/guest"))
                 .addFilterAfter(new CsrfCookieFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
