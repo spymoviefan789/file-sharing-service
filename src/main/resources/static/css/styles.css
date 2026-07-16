@@ -70,6 +70,12 @@
   padding: 0;
 }
 
+/* the hidden attribute must always win, even over display classes like
+   .rp-card { display: flex } — without this, "hidden" panels stay visible */
+[hidden] {
+  display: none !important;
+}
+
 body {
   min-height: 100vh;
   background: var(--bg);
