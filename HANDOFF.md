@@ -5,8 +5,10 @@
 
 ## Estado geral
 
-MVP **funcional de ponta a ponta**, testado à mão (curl + browser) contra
-PostgreSQL real. Tudo commitado, árvore de trabalho limpa.
+MVP **funcional de ponta a ponta** + **modo convidado completo** (envio anónimo
+de imagem/PDF sem conta). Testado: 225 testes unitários verdes + verificação
+manual (curl + browser). Tudo no `master` (o branch `guest-mode` foi merged e
+apagado), árvore de trabalho limpa. Sem remote configurado (repo só local).
 
 A app **não fica a correr entre sessões** — arranca com:
 
@@ -30,6 +32,11 @@ editar `src/main/resources/static/**` é preciso **reiniciar** para os apanhar.
   dashboard (mesmo `receive.js`, ids partilhados).
 - Frontend redesenhado (estilo bypass.city): tema claro/escuro com toggle
   (`js/theme.js`, tokens em `styles.css`), fonte Inter, acento laranja→rosa.
+- Bug do painel de convidado sempre visível: `.rp-card { display: flex }`
+  ganhava ao atributo `hidden` (regra fraca do user-agent). Corrigido com
+  `[hidden] { display: none !important; }` global no topo do `styles.css`.
+  Lição: verificar visibilidade por `getComputedStyle(...).display`, não pela
+  propriedade `.hidden`.
 
 ## O que está FEITO (e testado)
 
@@ -94,8 +101,12 @@ editar `src/main/resources/static/**` é preciso **reiniciar** para os apanhar.
   exceções
 - `receive/` — `ReceiveController`, `ReceiveService`, `ReceiveRateLimiter`, exceções
 - `guest/` — `GuestController`, `NicknameGenerator`, `GuestUploadRateLimiter`
-- `src/main/resources/static/` — frontend (html, css/styles.css, js/*)
-- `src/test/java/...` — `AccessCodesTest`, `ReceiveRateLimiterTest`
+- `src/main/resources/static/` — frontend (html, css/styles.css, js/theme.js,
+  js/guest.js, js/receive.js, js/dashboard.js, …)
+- `src/test/java/...` — 9 classes de teste (225 testes; lista na secção FEITO)
+- `docs/superpowers/specs|plans/` — spec e plano do modo convidado (2026-07-16)
+- `.claude/launch.json` — preview estático do frontend sem Spring
+  (`jwebserver`, porta 8001; o dashboard não funciona aí, precisa da API)
 
 ## Convenções (ver CLAUDE.md para o detalhe)
 - Mentor mode: explicar o porquê antes do quê; passos pequenos; esperar confirmação.
@@ -104,4 +115,10 @@ editar `src/main/resources/static/**` é preciso **reiniciar** para os apanhar.
 - Ponytail ativo: solução mínima que funciona, stdlib primeiro.
 
 ## Conta de teste (na BD de dev)
-- email `tomas@exemplo.pt`, password `umapasswordboa`
+- A BD foi recriada em 2026-07-16 (tabelas novas via ddl-auto) — a conta antiga
+  `tomas@exemplo.pt` já não existe. O Tomás criou uma conta nova no browser
+  (credenciais só ele sabe); para testar do zero, registar outra em /signup.
+- Migração manual já aplicada nesta BD:
+  `ALTER TABLE stored_files ALTER COLUMN owner_id DROP NOT NULL;`
+  (Numa BD nova esta migração NÃO é precisa — o Hibernate já cria `owner_id`
+  como nullable a partir do mapeamento atual.)
