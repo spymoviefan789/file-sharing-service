@@ -711,6 +711,95 @@ body {
   color: var(--rp-text);
 }
 
+/* guest mode: toggle under the receive card, and the send panel */
+.rp-guest-toggle {
+  margin-top: 16px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rp-guest-toggle:hover {
+  color: var(--text);
+  border-color: var(--accent-ring);
+}
+
+.rp-guest {
+  margin-top: 4px;
+  gap: 12px;
+}
+
+.rp-guest-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.rp-guest-filename {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rp-guest-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rp-guest-row + .rp-guest-row {
+  margin-top: 10px;
+}
+
+.rp-guest-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  width: 52px;
+}
+
+.rp-guest-value {
+  flex: 1;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: var(--surface-input);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.rp-copy {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rp-copy:hover {
+  color: var(--text);
+  border-color: var(--accent-ring);
+}
+
+.rp-guest-toggle:focus-visible,
+.rp-copy:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
 .rp-btn:focus-visible,
 .rp-ghost:focus-visible,
 .rp-field input:focus-visible,

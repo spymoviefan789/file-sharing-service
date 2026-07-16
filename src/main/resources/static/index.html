@@ -43,8 +43,40 @@
       <button id="download-btn" class="rp-btn" type="submit">Descarregar</button>
       <button id="preview-btn" class="rp-ghost" type="button">Pré-visualizar primeiro</button>
     </form>
+
+    <button id="guest-toggle" class="rp-guest-toggle" type="button">
+      Modo convidado — enviar um ficheiro sem conta
+    </button>
+
+    <section id="guest-panel" class="rp-card rp-guest" hidden>
+      <p class="rp-guest-hint">Envia uma imagem ou PDF. Uso único · expira em 24h.</p>
+
+      <input id="guest-file" type="file" accept="image/*,.pdf" hidden>
+      <button id="guest-pick" class="rp-btn" type="button">Escolher ficheiro</button>
+      <p id="guest-filename" class="rp-guest-filename" hidden></p>
+      <button id="guest-send" class="rp-btn" type="button" hidden>Enviar</button>
+
+      <p id="guest-error" class="rp-error" hidden></p>
+
+      <div id="guest-result" hidden>
+        <p class="rp-guest-hint">Entrega estes dois dados a quem vai receber:</p>
+        <div class="rp-guest-row">
+          <span class="rp-guest-label">Nome</span>
+          <code id="guest-nickname" class="rp-guest-value"></code>
+          <button class="rp-copy" type="button" data-copy="guest-nickname">Copiar</button>
+        </div>
+        <div class="rp-guest-row">
+          <span class="rp-guest-label">Código</span>
+          <code id="guest-code" class="rp-guest-value"></code>
+          <button class="rp-copy" type="button" data-copy="guest-code">Copiar</button>
+        </div>
+      </div>
+
+      <button id="guest-back" class="rp-ghost" type="button">← Voltar a receber</button>
+    </section>
   </main>
 
+  <script src="js/guest.js"></script>
   <script src="js/receive.js"></script>
 </body>
 </html>
