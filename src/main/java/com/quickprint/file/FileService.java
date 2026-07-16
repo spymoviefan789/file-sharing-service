@@ -8,7 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.quickprint.guest.NicknameGenerator;
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.time.Duration;
@@ -24,12 +27,18 @@ public class FileService {
     private final StoredFileRepository files;
     private final FileStorageService storage;
     private final Duration defaultTtl;
+    private final Duration guestTtl;
+    private final int freeMaxFiles;
 
     public FileService(StoredFileRepository files, FileStorageService storage,
-                       @Value("${quickprint.storage.default-ttl}") Duration defaultTtl) {
+                       @Value("${quickprint.storage.default-ttl}") Duration defaultTtl,
+                       @Value("${quickprint.storage.guest-ttl}") Duration guestTtl,
+                       @Value("${quickprint.limits.free-max-files}") int freeMaxFiles) {
         this.files = files;
         this.storage = storage;
         this.defaultTtl = defaultTtl;
+        this.guestTtl = guestTtl;
+        this.freeMaxFiles = freeMaxFiles;
     }
 
     @Transactional
@@ -60,6 +69,54 @@ public class FileService {
                 contentType, file.getSize(), shareLimit, oneTime,
                 AccessCodes.newSecret(), Instant.now().plus(defaultTtl));
         return files.save(stored);
+    }
+
+    // Anonymous one-time upload: generated name + fixed code, images/PDF only,
+    // short TTL. Returns exactly what the sender must hand to the receiver.
+    public record GuestUpload(String nickname, String code) {
+    }
+
+    @Transactional
+    public GuestUpload uploadGuest(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new InvalidUploadException("File is empty.");
+        }
+        FileTypePolicy.Kind kind = FileTypePolicy.detect(headOf(file));
+        if (!FileTypePolicy.allowedForGuest(kind)) {
+            throw new UnsupportedFileTypeException();
+        }
+
+        String nickname = freshGuestNickname();
+        String code = FixedCodes.generate();
+
+        String storageName = storage.store(file);
+        String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
+        String originalName = file.getOriginalFilename();
+        originalName = originalName == null ? "file" : originalName.replaceAll(".*[/\\\\]", "");
+
+        files.save(StoredFile.guest(originalName, nickname, storageName, contentType,
+                file.getSize(), code, Instant.now().plus(guestTtl)));
+        return new GuestUpload(nickname, code);
+    }
+
+    // The generator's space is ~36k names; retry a few times on collision.
+    private String freshGuestNickname() {
+        for (int attempt = 0; attempt < 30; attempt++) {
+            String candidate = NicknameGenerator.generate();
+            if (!files.existsByNickname(candidate)) {
+                return candidate;
+            }
+        }
+        throw new IllegalStateException("Could not find a free guest nickname.");
+    }
+
+    // First bytes of the real content — what FileTypePolicy decides on.
+    private static byte[] headOf(MultipartFile file) {
+        try (InputStream in = file.getInputStream()) {
+            return in.readNBytes(FileTypePolicy.HEAD_LENGTH);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not read upload", e);
+        }
     }
 
     @Transactional(readOnly = true)
