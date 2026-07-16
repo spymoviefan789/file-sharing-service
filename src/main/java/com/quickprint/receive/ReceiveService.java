@@ -2,6 +2,7 @@ package com.quickprint.receive;
 
 import com.quickprint.file.AccessCodes;
 import com.quickprint.file.ContentTypes;
+import com.quickprint.file.FixedCodes;
 import com.quickprint.file.FileStorageService;
 import com.quickprint.file.StoredFile;
 import com.quickprint.file.StoredFileRepository;
@@ -32,7 +33,7 @@ public class ReceiveService {
     public Fetched fetch(String nickname, String code, boolean preview) {
         StoredFile file = files.findByNickname(nickname)
                 .filter(f -> !f.isExpired())
-                .filter(f -> AccessCodes.isValid(f.getSecret(), code))
+                .filter(f -> codeMatches(f, code))
                 .orElseThrow(DownloadNotAvailableException::new);
 
         if (preview && !ContentTypes.isPreviewable(file.getContentType())) {
@@ -59,5 +60,13 @@ public class ReceiveService {
         }
 
         return new Fetched(file.getOriginalFilename(), file.getContentType(), content);
+    }
+
+    // Guest files carry a fixed code; account files derive a rolling one.
+    private static boolean codeMatches(StoredFile file, String code) {
+        if (file.getFixedCode() != null) {
+            return FixedCodes.matches(file.getFixedCode(), code);
+        }
+        return AccessCodes.isValid(file.getSecret(), code);
     }
 }
