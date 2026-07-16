@@ -4,34 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuickPrint — Criar conta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="js/theme.js"></script>
 </head>
-<body class="auth-page">
+<body class="receive-page">
 
-  <main class="auth-card">
-    <svg class="auth-logo" viewBox="0 0 48 48" width="56" height="56" aria-hidden="true">
-      <path fill="currentColor" d="M9 6l7 9 8-3 8 3 7-9 1 14-6 10 3 4-8 2-5 8-5-8-8-2 3-4-6-10z"/>
-      <path fill="var(--bg)" d="M19 26l4 3 1 4-6-2zM29 26l-4 3-1 4 6-2z"/>
-    </svg>
-    <h1 class="auth-title">QUICKPRINT</h1>
+  <a class="rp-wordmark" href="index.html">QuickPrint</a>
+  <nav class="rp-nav">
+    <button type="button" class="rp-theme-toggle" data-theme-toggle></button>
+    <a href="login.html">Log in</a>
+  </nav>
 
-    <form id="signup-form" novalidate>
-      <label class="field">
-        <span class="field-label">EMAIL</span>
-        <input type="email" name="email" autocomplete="email" required>
-      </label>
+  <main class="rp-hero">
+    <h1 class="rp-title">Cria a tua <span class="rp-accent">conta</span></h1>
+    <p class="rp-lead">Só quem envia precisa de conta. Receber é sempre livre.</p>
 
-      <label class="field">
-        <span class="field-label">PASSWORD (mín. 8 caracteres)</span>
-        <input type="password" name="password" autocomplete="new-password" minlength="8" required>
-      </label>
+    <form id="signup-form" class="rp-card" novalidate>
+      <div class="rp-fields">
+        <label class="rp-field">
+          <span class="rp-field-label">Email</span>
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label class="rp-field">
+          <span class="rp-field-label">Password (mín. 8 caracteres)</span>
+          <input type="password" name="password" autocomplete="new-password" minlength="8" required>
+        </label>
+      </div>
 
-      <p id="signup-error" class="form-error" hidden></p>
+      <p id="signup-error" class="rp-error" hidden></p>
 
-      <button class="pill pill--solid auth-submit" type="submit">CRIAR CONTA</button>
+      <button class="rp-btn" type="submit">Criar conta</button>
     </form>
 
-    <p class="auth-alt">Já tens conta? <a class="auth-link" href="login.html">LOG IN</a></p>
+    <p class="rp-alt">Já tens conta? <a href="login.html">Entrar</a></p>
   </main>
 
   <script src="js/csrf.js"></script>

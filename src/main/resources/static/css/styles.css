@@ -3,17 +3,65 @@
    ========================================================================== */
 
 :root {
-  --bg: #3d3d3b;            /* main charcoal */
-  --bg-sidebar: #464644;    /* sidebar, one step lighter */
-  --cream: #f4eedc;         /* primary accent */
-  --cream-dim: rgba(244, 238, 220, 0.72);
-  --ink-on-cream: #2e2e2c;  /* dark text on cream pills */
-  --hairline: rgba(244, 238, 220, 0.18);
+  /* legacy names kept, now pointing at the shared theme tokens below so the
+     dashboard adopts the light/dark theme without rewriting its rules */
+  --bg: var(--surface-bg);
+  --bg-sidebar: var(--surface-panel);
+  --cream: var(--text);              /* was the cream accent → now primary text */
+  --cream-dim: var(--text-muted);
+  --ink-on-cream: var(--surface-bg); /* text on a solid (light-on-dark) pill */
+  --hairline: var(--line);
 
   --radius-pill: 999px;
-  --sidebar-w: 112px;
+  --sidebar-w: 240px;
 
-  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ==========================================================================
+   Theme tokens — light default + dark (system preference or manual toggle).
+   Consumed by the new pages (receive, and later login/dashboard).
+   Accent stays the same in both themes; only surfaces/text/danger switch.
+   ========================================================================== */
+:root {
+  --surface-bg: #f6f7f9;
+  --surface-panel: #ffffff;
+  --surface-input: #eef0f4;
+  --line: rgba(15, 17, 21, 0.10);
+  --text: #1a1c22;
+  --text-muted: #6b7280;
+  --glow: rgba(255, 122, 61, 0.14);
+  --danger: #dc2626;
+
+  --accent-grad: linear-gradient(95deg, #ff7a3d 0%, #ff4d6d 100%);
+  --accent-ring: #ff6a4d;
+  --accent-line: #ff7a3d;
+}
+
+/* dark when the OS asks for it — unless the user forced light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface-bg: #17181c;
+    --surface-panel: #23252b;
+    --surface-input: #16171b;
+    --line: rgba(255, 255, 255, 0.09);
+    --text: #eceef3;
+    --text-muted: #8a8f9c;
+    --glow: rgba(255, 122, 61, 0.16);
+    --danger: #f87171;
+  }
+}
+
+/* dark when the user forces it (wins over system) */
+:root[data-theme="dark"] {
+  --surface-bg: #17181c;
+  --surface-panel: #23252b;
+  --surface-input: #16171b;
+  --line: rgba(255, 255, 255, 0.09);
+  --text: #eceef3;
+  --text-muted: #8a8f9c;
+  --glow: rgba(255, 122, 61, 0.16);
+  --danger: #f87171;
 }
 
 * {
@@ -39,14 +87,115 @@ body {
   flex-shrink: 0;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--hairline);
-  padding-top: 40px;
+  padding: 28px 18px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 26px;
 }
 
 .logo {
   color: var(--cream);
   display: inline-flex;
+  align-self: center;
+}
+
+/* receive-a-file widget living in the dashboard sidebar (uses receive.js) */
+.side-receive {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.side-receive-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.side-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.side-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.side-field input {
+  width: 100%;
+  background: var(--surface-input);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  padding: 9px 11px;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.side-field input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.side-field input:focus {
+  border-color: var(--accent-ring);
+}
+
+.side-code {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.side-error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.side-btn {
+  margin-top: 2px;
+  padding: 10px 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent-grad);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+}
+
+.side-btn:hover {
+  opacity: 0.92;
+}
+
+.side-ghost {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.side-ghost:hover {
+  color: var(--text);
+}
+
+.side-btn:focus-visible,
+.side-ghost:focus-visible,
+.side-field input:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
 }
 
 /* --------------------------------------------------------------------------
@@ -90,9 +239,9 @@ body {
 }
 
 .pill--danger {
-  background: #d97a63;
-  color: #241f1d;
-  border-color: #d97a63;
+  background: #e5484d;
+  color: #fff;
+  border-color: transparent;
 }
 
 .pill:hover {
@@ -160,6 +309,13 @@ body {
 
 .add-file {
   margin-bottom: 56px;
+}
+
+/* primary call-to-action gets the orange accent; other pills stay neutral */
+#add-file {
+  background: var(--accent-grad);
+  color: #fff;
+  border-color: transparent;
 }
 
 .toolbar {
@@ -302,40 +458,8 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   Auth pages (login / sign up)
+   Form fields — shared by the dashboard upload dialog
    -------------------------------------------------------------------------- */
-
-.auth-page {
-  align-items: center;
-  justify-content: center;
-}
-
-.auth-card {
-  width: min(380px, 92vw);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 32px 0;
-}
-
-.auth-logo {
-  color: var(--cream);
-}
-
-.auth-title {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  margin-bottom: 26px;
-}
-
-.auth-card form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
 
 .field {
   display: flex;
@@ -368,118 +492,252 @@ body {
 }
 
 .form-error {
-  color: #f0b9a8;
+  color: var(--danger);
   font-size: 14px;
   text-align: center;
 }
 
-.auth-submit {
-  justify-content: center;
-  margin-top: 6px;
-}
-
-.auth-alt {
-  margin-top: 18px;
-  font-size: 14px;
-  color: var(--cream-dim);
-}
-
-.auth-link {
-  color: var(--cream);
-  font-weight: 700;
-}
-
-/* Receiving page (index.html) — the open, airy front door */
+/* ==========================================================================
+   Receiving page (index.html) + auth pages — dark/light, compact front door
+   (bypass.city look). Scoped to .receive-page.
+   ========================================================================== */
 .receive-page {
+  --rp-panel: var(--surface-panel);
+  --rp-input: var(--surface-input);
+  --rp-border: var(--line);
+  --rp-text: var(--text);
+  --rp-muted: var(--text-muted);
+  --rp-grad: var(--accent-grad);
+
   min-height: 100vh;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 40px 20px;
+  background:
+    radial-gradient(680px 420px at 50% 30%, var(--glow), transparent 70%),
+    var(--surface-bg);
+  color: var(--rp-text);
+  font-family: "Inter", var(--font);
 }
 
-.corner-login {
+.rp-wordmark {
   position: absolute;
   top: 22px;
-  right: 26px;
-  font-size: 13px;
-  padding: 7px 16px;
+  left: 26px;
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--rp-text);
+  text-decoration: none;
 }
 
-.receive-hero {
+/* "already have an account?" line under the auth card */
+.rp-alt {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--rp-muted);
+}
+
+.rp-alt a {
+  color: var(--accent-line);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rp-alt a:hover {
+  text-decoration: underline;
+}
+
+.rp-nav {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rp-nav a {
+  color: var(--rp-muted);
+  text-decoration: none;
+  padding: 7px 13px;
+  border-radius: 8px;
+}
+
+.rp-nav a:hover {
+  color: var(--rp-text);
+}
+
+.rp-register {
+  color: var(--rp-text) !important;
+  background: var(--rp-panel);
+  border: 1px solid var(--rp-border);
+}
+
+.rp-hero {
   width: 100%;
-  max-width: 680px;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
 
-.receive-logo {
-  color: var(--cream);
+.rp-title {
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
 }
 
-.receive-title {
-  font-size: clamp(42px, 8vw, 68px);
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  margin: 16px 0 12px;
+.rp-accent {
+  background: var(--rp-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: underline wavy var(--accent-line);
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
 }
 
-.receive-lead {
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--cream-dim);
-  max-width: 470px;
-  margin-bottom: 44px;
+.rp-lead {
+  font-size: 14px;
+  color: var(--rp-muted);
+  margin-bottom: 26px;
 }
 
-.receive-form {
+/* the card: dark panel with a subtle border, like bypass.city's input block */
+.rp-card {
   width: 100%;
-}
-
-/* name + code side by side on wide screens: horizontal, open, not boxed */
-.receive-fields {
   display: flex;
-  gap: 18px;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+  background: var(--rp-panel);
+  border: 1px solid var(--rp-border);
+  border-radius: 14px;
   text-align: left;
 }
 
-.field-name {
-  flex: 1.7;
-}
-
-.field-code {
-  flex: 1;
-}
-
-.receive-fields input {
-  font-size: 17px;
-  padding: 14px 22px;
-}
-
-.code-input {
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.receive-actions {
+/* name + code stacked, one below the other */
+.rp-fields {
   display: flex;
+  flex-direction: column;
   gap: 14px;
-  margin-top: 24px;
 }
 
-.receive-actions .pill {
-  flex: 1;
+.rp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rp-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rp-muted);
+}
+
+.rp-field input {
+  width: 100%;
+  background: var(--rp-input);
+  border: 1px solid var(--rp-border);
+  border-radius: 8px;
+  color: var(--rp-text);
+  font: inherit;
+  font-size: 15px;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.rp-field input::placeholder {
+  color: var(--rp-muted);
+  opacity: 0.7;
+}
+
+.rp-field input:focus {
+  border-color: var(--accent-ring);
+}
+
+.rp-code {
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.rp-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin: -2px 0 0;
+}
+
+.rp-btn {
+  margin-top: 4px;
+  padding: 12px 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--rp-grad);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.rp-btn:hover {
+  opacity: 0.92;
+}
+
+.rp-btn:active {
+  transform: scale(0.99);
+}
+
+.rp-ghost {
+  background: none;
+  border: none;
+  color: var(--rp-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.rp-ghost:hover {
+  color: var(--rp-text);
+}
+
+.rp-btn:focus-visible,
+.rp-ghost:focus-visible,
+.rp-field input:focus-visible,
+.rp-nav a:focus-visible,
+.rp-theme-toggle:focus-visible {
+  outline: 2px solid var(--accent-ring);
+  outline-offset: 2px;
+}
+
+/* light/dark toggle button in the header */
+.rp-theme-toggle {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  font-size: 16px;
-  padding: 13px 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-panel);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
 }
 
-@media (max-width: 520px) {
-  .receive-fields {
-    flex-direction: column;
-  }
+.rp-theme-toggle:hover {
+  border-color: var(--accent-ring);
 }
 
 /* --------------------------------------------------------------------------
@@ -595,7 +853,7 @@ body {
 
 .ring-progress {
   fill: none;
-  stroke: var(--cream);
+  stroke: var(--accent-line);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 94.25; /* 2·π·15 */
@@ -689,6 +947,15 @@ body {
 @media (max-width: 640px) {
   :root {
     --sidebar-w: 60px;
+  }
+
+  /* no room for the receive form in a 60px rail — fall back to the header link */
+  .side-receive {
+    display: none;
+  }
+
+  .sidebar {
+    padding: 20px 8px;
   }
 
   .main {

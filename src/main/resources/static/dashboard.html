@@ -4,7 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuickPrint — Os meus ficheiros</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="js/theme.js"></script>
 </head>
 <body>
 
@@ -13,9 +17,27 @@
       <!-- wolf mark (placeholder for the final logo asset) -->
       <svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true">
         <path fill="currentColor" d="M9 6l7 9 8-3 8 3 7-9 1 14-6 10 3 4-8 2-5 8-5-8-8-2 3-4-6-10z"/>
-        <path fill="var(--bg)" d="M19 26l4 3 1 4-6-2zM29 26l-4 3-1 4 6-2z"/>
+        <path fill="var(--bg-sidebar)" d="M19 26l4 3 1 4-6-2zM29 26l-4 3-1 4 6-2z"/>
       </svg>
     </a>
+
+    <!-- receive a file without leaving the dashboard (reuses receive.js) -->
+    <form id="receive-form" class="side-receive" novalidate>
+      <h2 class="side-receive-title">Receber ficheiro</h2>
+      <label class="side-field">
+        <span class="side-field-label">Nome</span>
+        <input id="nickname" type="text" autocomplete="off" spellcheck="false"
+               placeholder="ex: relatorio" required>
+      </label>
+      <label class="side-field">
+        <span class="side-field-label">Código</span>
+        <input id="code" type="text" autocomplete="off" spellcheck="false"
+               maxlength="6" class="side-code" placeholder="A1B2C3" required>
+      </label>
+      <p id="receive-error" class="side-error" hidden></p>
+      <button id="download-btn" class="side-btn" type="submit">Descarregar</button>
+      <button id="preview-btn" class="side-ghost" type="button">Pré-visualizar</button>
+    </form>
   </aside>
 
   <div class="main">
@@ -30,7 +52,7 @@
       </label>
 
       <div class="top-right">
-        <a class="pill pill--outline" href="index.html">RECEBER FICHEIRO</a>
+        <button type="button" class="rp-theme-toggle" data-theme-toggle></button>
         <div class="auth-actions">
           <a class="pill pill--solid" href="login.html">LOG IN</a>
           <a class="pill pill--outline" href="signup.html">SIGN UP</a>
@@ -103,6 +125,7 @@
   </dialog>
 
   <script src="js/csrf.js"></script>
+  <script src="js/receive.js"></script>
   <script src="js/dashboard.js"></script>
 </body>
 </html>

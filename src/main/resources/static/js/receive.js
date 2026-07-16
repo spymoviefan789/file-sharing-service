@@ -10,15 +10,18 @@ const errorBox = document.getElementById("receive-error");
 const previewBtn = document.getElementById("preview-btn");
 
 // If already logged in, the corner link should lead back to the dashboard
-// rather than to a login the user has already done.
-fetch("/api/auth/me")
-  .then((res) => {
-    if (!res.ok) return;
-    const corner = document.getElementById("corner-link");
-    corner.textContent = "O MEU PAINEL";
-    corner.href = "dashboard.html";
-  })
-  .catch(() => {});
+// rather than to a login the user has already done. (No corner link on the
+// dashboard, where this same script also runs the sidebar receive widget.)
+const cornerLink = document.getElementById("corner-link");
+if (cornerLink) {
+  fetch("/api/auth/me")
+    .then((res) => {
+      if (!res.ok) return;
+      cornerLink.textContent = "O MEU PAINEL";
+      cornerLink.href = "dashboard.html";
+    })
+    .catch(() => {});
+}
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
